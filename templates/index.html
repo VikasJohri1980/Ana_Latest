@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Text to Speech</h1>
+    <input type="text" id="text-input" placeholder="Enter text here">
+    <button onclick="sendMessage()">Send</button>
+    <audio id="audio-output" controls></audio>
+
+    <script>
+        const socket = io('http://127.0.0.1:5000', {
+            transports: ['websocket', 'polling'],
+            withCredentials: true,
+            extraHeaders: {
+                "my-custom-header": "abcd"
+            }
+        });
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+
+        function sendMessage() {
+            const textInput = document.getElementById('text-input').value;
+            socket.emit('text_msg', textInput);
+        }
+
+        socket.on('new_audio', () => {
+            fetch('http://127.0.0.1:5000/audio')  // Replace with your actual endpoint
+                .then(response => response.blob())
+                .then(blob => {
+                    const audioUrl = URL.createObjectURL(blob);
+                    const audioOutput = document.getElementById('audio-output');
+                    audioOutput.src = audioUrl;
+                    audioOutput.play();
+                });
+        });
+    </script>
+</body>
+</html>
